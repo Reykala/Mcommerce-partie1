@@ -2,6 +2,7 @@ package com.ecommerce.microcommerce.web.controller;
 
 import com.ecommerce.microcommerce.dao.ProductDao;
 import com.ecommerce.microcommerce.model.Product;
+import com.ecommerce.microcommerce.web.exceptions.ProduitGratuitException;
 import com.ecommerce.microcommerce.web.exceptions.ProduitIntrouvableException;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
@@ -9,6 +10,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.web.bind.annotation.*;
@@ -51,14 +53,14 @@ public class ProductController {
 
 
     //RÃ©cupÃ©rer un produit par son Id
-    @ApiOperation(value = "RÃ©cupÃ¨re un produit grÃ¢ce Ã  son ID Ã  condition que celui-ci soit en stock!")
+    @ApiOperation(value = "Recupere un produit grace a  son ID a  condition que celui-ci soit en stock!")
     @GetMapping(value = "/Produits/{id}")
 
     public Product afficherUnProduit(@PathVariable int id) {
 
         Product produit = productDao.findById(id);
 
-        if(produit==null) throw new ProduitIntrouvableException("Le produit avec l'id " + id + " est INTROUVABLE. Ã‰cran Bleu si je pouvais.");
+        if(produit==null) throw new ProduitIntrouvableException("Le produit avec l'id " + id + " est INTROUVABLE. ecran Bleu si je pouvais.");
 
         return produit;
     }
@@ -69,8 +71,11 @@ public class ProductController {
     //ajouter un produit
     @PostMapping(value = "/Produits")
 
-    public ResponseEntity<Void> ajouterProduit(@Valid @RequestBody Product product) {
+    public ResponseEntity<Void> ajouterProduit( @Valid @RequestBody Product product) throws ProduitGratuitException {
 
+        if(product.getPrix()== 0) {
+        	throw new ProduitGratuitException("Le produit ne peux pas etre gratuit , j'ai des salaires et des frais a payé moi.");
+        }
         Product productAdded =  productDao.save(product);
 
         if (productAdded == null)
